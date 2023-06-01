@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>
+            后台管理系统
+        </title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="format-detection" content="telephone=no">
+        <link rel="stylesheet" href="./css/x-admin.css" media="all">
+        <script src="../js/vue.js"></script>
+        <script src="../js/axios-0.18.0.js"></script>
+        <<script src="../js/dateFormat.js"></script>
+    </head>
+    <body>
+        <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>用户管理</cite></a>
+              <a><cite>评论列表</cite></a>
+            </span>
+            <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+        </div>
+        <div class="x-body" id="list">
+            <xblock><button class="layui-btn layui-btn-danger" onclick="checkDateValue()"><i class="layui-icon">&#xe640;</i>批量删除</button>
+                <span class="x-right" style="line-height:40px">共有数据：{{this.count}} 条</span></xblock>
+            <table class="layui-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" name="checkboxALl" value="">
+                        </th>
+                        <th>
+                            ID
+                        </th>
+                        <th>
+                            评论者信息
+                        </th>
+                        <th>
+                            评论内容
+                        </th>
+                        <th>
+                            关联文章id
+                        </th>
+                        <th>
+                            回复时间
+                        </th>
+                        <th>
+                            操作
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="x-link">
+                    <tr v-for="item in commentData">
+                        <td>
+                            <input type="checkbox" value="item.commentId"   name="commentDataValue">
+                        </td>
+                        <td>
+                            {{item.commentId}}
+                        </td>
+                        <td>
+                            <a href="cate-list.html">
+                                {{item.usernickname}}
+                            </a>
+                        </td>
+                        <td >
+                            <span v-html="item.commentText"></span>
+                        </td>
+                        <td >
+                            <a href="a-list.html">
+                                {{item.articleId}}
+                            </a>
+
+                        </td> 
+                        <td >
+                            {{item.commentDate | dateFormat}}
+                        </td>
+                        <td class="td-manage">
+                            <a title="删除" href="javascript:;" @click="commemt_del(item.commentId)"
+                            style="text-decoration:none">
+                                <i class="layui-icon">&#xe640;</i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div id="page"></div>
+        </div>
+        <script src="./lib/layui/layui.js" charset="utf-8"></script>
+        <script src="./js/x-layui.js" charset="utf-8"></script>
+        <script>
+            //批量删除提交
+            function delAll () {
+                layer.confirm('确认要删除吗？',function(index){
+                    //捉到所有被选中的，发异步进行删除
+                    layer.msg('删除成功', {icon: 1});
+                });
+            }
+            var total;
+            var pageSize;
+            layui.use(['element','laypage','layer','form'], function(){
+                $ = layui.jquery;//jquery
+              lement = layui.element();//面包导航
+              laypage = layui.laypage;//分页
+              layer = layui.layer;//弹出层
+              form = layui.form();//弹出层
+
+                laypage({
+                    cont:'page',
+                    pages:pageSize,
+                    first:1,
+                    last:pageSize,
+                    prev:'<em>上一页</em>',
+                    next:'<em>下一页</em>',
+                    jump:function (obj){
+                        list.selectAllComment(obj.curr,2)
+                        console.log(obj.curr)
+                    }
+                })
+          });
+
+
+            const list = new Vue({
+                el:"#list",
+                mounted(){
+                    this.selectAllComment(1);
+                    this.selectCount();
+                },
+                methods:{
+
+                    selectAllComment(page,size){
+                        axios({
+                            method:"post",
+                            url:"/articlecomment?opr=getByPage&page="+page+"&size=8",
+                        }).then(resp =>{
+                            console.log(resp)
+                            this.commentData=resp.data.data.data;
+                            this.commentTotal=resp.data.data.total;
+                            this.commentSize=resp.data.data.pageCount;
+                            console.log(resp.data.data.data)
+                            total = this.commentTotal;
+                            pageSize = this.commentSize;
+                        })
+                    },
+                    selectCount(){
+                        axios({
+                            method: "post",
+                            url:"/articlecomment?opr=getcount",
+                        }).then(rs =>{
+                            this.count = rs.data;
+                        })
+                    },
+                    commemt_del(articleId){
+                        //alert(articleId)
+                        if(window.confirm("确定删除吗？")){
+                            axios({
+                                method:"post",
+                                url:"/articlecomment?opr=delete&commentid="+articleId
+                            }).then(rs =>{
+                                this.articleId = rs.articleId;
+                            })
+                            window.location.replace("/backend/comment-list.html")
+                        }
+
+                    }
+                },
+
+                data(){
+                    return{
+                        commentData:[],
+                        commentTotal:0,
+                        commentSize:0,
+                        count:[]
+                    }
+                }
+            })
+            Vue.filter('dateFormat', function (n){
+                let date = new Date(n);
+                let year = date.getFullYear();
+                let month = date.getMonth() + 1;
+                let day = date.getDate();
+                let hour = date.getHours();
+                let minute = date.getMinutes() > 9 ? date.getMinutes() : ("0" + date.getMinutes());
+                let second = date.getSeconds() > 9 ? date.getSeconds() : ("0" + date.getSeconds());
+                return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+            })
+
+            </script>
+    </body>
+</html>

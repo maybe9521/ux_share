@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        文章类型
+    </title>
+    <meta content="webkit" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="telephone=no" name="format-detection">
+    <link href="./css/x-admin.css" media="all" rel="stylesheet">
+    <meta content="no-cache" http-equiv="pragma">
+    <meta content="no-cache" http-equiv="cache-control">
+    <meta content="0" http-equiv="expires">
+</head>
+<body style="padding: 0 25px;">
+<script src="../js/vue.js"></script>
+<script src="../element-ui/lib/index.js"></script>
+<link href="../element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+<script src="../js/axios-0.18.0.js"></script>
+<script src="../js/dateFormat.js"></script>
+<div class="x-nav">
+				<span class="layui-breadcrumb">
+					<a><cite>首页</cite></a>
+					<a><cite>文章管理</cite></a>
+					<a><cite>文章列表</cite></a>
+				</span>
+    <a class="layui-btn layui-btn-small" href="javascript:location.replace(location.href);"
+       style="line-height:1.6em;margin-top:3px;float:right" title="刷新"><i class="layui-icon"
+                                                                            style="line-height:30px">ဂ</i></a>
+</div>
+<div id="app">
+
+    <!--搜索表单-->
+    <el-form :inline="true" :model="select" class="demo-form-inline">
+
+        <div class="block">
+            <span class="demonstration">带快捷选项</span>
+            <el-date-picker
+                    :picker-options="pickerOptions"
+                    align="right"
+                    end-placeholder="结束日期"
+                    range-separator="至"
+                    start-placeholder="开始日期"
+                    type="daterange"
+                    unlink-panels
+                    v-model="value1">
+            </el-date-picker>
+            <el-form-item label="用户账号">
+                <el-input placeholder="用户账号" v-model="select.username"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button @click="onSubmit" type="primary">查询</el-button>
+            </el-form-item>
+        </div>
+    </el-form>
+    <el-row>
+        <el-button @click="deleteByIds" plain type="danger">批量删除</el-button>
+    </el-row>
+    <!--按钮-->
+
+    <!--    <el-row>-->
+
+    <!--        <el-button @click="deleteByIds" plain type="danger">批量删除</el-button>-->
+    <!--        <el-button @click="dialogVisible = true" plain type="primary">新增</el-button>-->
+
+    <!--    </el-row>-->
+    <!--    &lt;!&ndash;添加数据对话框表单&ndash;&gt;-->
+    <!--    <el-dialog-->
+    <!--            :visible.sync="dialogVisible"-->
+    <!--            title="编辑品牌"-->
+    <!--            width="30%"-->
+    <!--    >-->
+
+    <!--        <el-form :model="brand" label-width="80px" ref="form">-->
+    <!--            <el-form-item label="品牌名称">-->
+    <!--                <el-input v-model="brand.brandName"></el-input>-->
+    <!--            </el-form-item>-->
+
+    <!--            <el-form-item label="企业名称">-->
+    <!--                <el-input v-model="brand.companyName"></el-input>-->
+    <!--            </el-form-item>-->
+
+    <!--            <el-form-item label="排序">-->
+    <!--                <el-input v-model="brand.ordered"></el-input>-->
+    <!--            </el-form-item>-->
+
+    <!--            <el-form-item label="备注">-->
+    <!--                <el-input type="textarea" v-model="brand.description"></el-input>-->
+    <!--            </el-form-item>-->
+
+    <!--            <el-form-item label="状态">-->
+    <!--                <el-switch active-value="1"-->
+    <!--                           inactive-value="0"-->
+    <!--                           v-model="brand.status"-->
+    <!--                ></el-switch>-->
+    <!--            </el-form-item>-->
+
+
+    <!--            <el-form-item>-->
+    <!--                <el-button @click="addBrand" type="primary">提交</el-button>-->
+    <!--                <el-button @click="dialogVisible = false">取消</el-button>-->
+    <!--            </el-form-item>-->
+    <!--        </el-form>-->
+
+    <!--    </el-dialog>-->
+
+
+    <!--表格-->
+    <template>
+        <el-table
+                :data="tableData"
+                :row-class-name="tableRowClassName"
+                @selection-change="handleSelectionChange"
+                style="width: 100%">
+            <el-table-column
+                    type="selection"
+                    width="30">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="文章编号"
+                    prop="articleId"
+                    width="80"
+            >
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="文章标题"
+                    prop="articleTitle"
+            >
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="文章状态"
+                    prop="articleState"
+                    width="80">
+                <template #default="scope">
+                    <el-tag size="default" type="success" v-if="scope.row.articleState == 1">启用</el-tag>
+                    <el-tag size="default" type="danger" v-if="scope.row.articleState== 2">禁用</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="作者id"
+                    prop="userId"
+                    width="80">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="作者账号"
+                    prop="userName">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="文章概要"
+                    prop="articleSummary">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="封面图片"
+                    prop="articleCover">
+                <template slot-scope="scope">
+                    <div v-if="scope.row.articleCover != null && scope.row.articleCover != ''">
+
+                        <!-- trigger属性值：hover、click、focus、 manual -->
+                        <el-popover trigger="click">
+                            <a :href="scope.row.articleCover" target="_blank" title="查看大图">
+                                <img :src="scope.row.articleCover" alt=""
+                                     style="width: 350px; height: 350px; cursor: pointer"/>
+                            </a>
+                            <img :src="scope.row.articleCover" alt="" slot="reference"
+                                 style="width: 100px; height: 100px; cursor: pointer"/>
+                        </el-popover>
+                    </div>
+                    <div v-else>
+                        <span>无图片</span>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    :formatter="formatDate"
+                    align="center"
+                    label="发布时间"
+                    prop="createDate" width="180">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="点赞数"
+                    prop="dataLike"
+                    width="80">
+            </el-table-column>
+            <el-table-column
+                    align="center"
+                    label="浏览数"
+                    prop="dataPv"
+                    width="80">
+            </el-table-column>
+            <!--            <el-table-column-->
+            <!--                    align="center"-->
+            <!--                    label="发布时间"-->
+            <!--                    prop="createDate"-->
+            <!--                    width="80" :formatter="dateFormat">-->
+            <!--            </el-table-column>-->
+            <el-table-column
+                    align="center"
+                    label="操作"
+            >
+
+                <template slot-scope="scope">
+                    <el-button @click="handleEdit(scope.$index, scope.row)" size="small" type="primary">编辑</el-button>
+                    <el-button @click="toggleState(scope.$index, scope.row)" size="small" type="danger">状态更改
+                    </el-button>
+                </template>
+
+            </el-table-column>
+        </el-table>
+    </template>
+
+    <!--分页工具条-->
+    <el-pagination
+            :current-page="currentPage"
+            :page-size="2"
+            :page-sizes="[2]"
+            :total="totalCount"
+            @current-change="handleCurrentChange"
+            @size-change="handleSizeChange"
+            layout="total, sizes, prev, pager, next, jumper">
+    </el-pagination>
+    <!--    :page-sizes="[2, 10, 15, 20]"-->
+</div>
+</div>
+<script>
+
+
+    new Vue({
+        el: "#app",
+
+        mounted() {
+            //当页面加载完成后，发送异步请求，获取数据
+            console.log(this.brand)
+            this.selectAll();
+        },
+
+        methods: {
+
+            //
+            formatDate(row, column) {
+                // 获取单元格数据
+                let data = row[column.property]
+                if (data === '') {
+                    return ''
+                } else {
+                    let dt = new Date(data)
+                    return dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-' + dt.getDate() + ' ' + dt.getHours() + ':' + dt.getMinutes() + ':' + dt.getSeconds()
+                }
+            },
+
+            // 查询分页数据
+            selectAll() {
+                console.log(this.currentPage)
+                console.log(this.pageSize)
+                axios({
+                    method: "post",
+                    url: "/article?opr=getByPage&page=" + this.currentPage +
+                        "&size=" + this.pageSize,
+                    data: this.select
+                }).then(resp => {
+                    console.log(resp.data)
+                    //设置表格数据
+                    this.tableData = resp.data.data.data; // {rows:[],totalCount:100}
+                    //设置总记录数
+                    this.totalCount = resp.data.data.total;
+                    console.log(this.totalCount)
+                })
+            },
+            tableRowClassName({row, rowIndex}) {
+                if (rowIndex === 1) {
+                    return 'warning-row';
+                } else if (rowIndex === 3) {
+                    return 'success-row';
+                }
+                return '';
+            },
+            // 复选框选中后执行的方法
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+                //1. 创建id数组 [1,2,3], 从 this.multipleSelection 获取即可
+                for (let i = 0; i < this.multipleSelection.length; i++) {
+                    let selectionElement = this.multipleSelection[i];
+                    this.selectedIds[i] = selectionElement.articleId;
+                    console.log(this.selectedIds)
+                }
+                console.log(this.multipleSelection)
+                console.log(this.selectedIds)
+            },
+            // 查询方法
+            onSubmit() {
+                //console.log(this.brand);
+                //console.log(this.value2)
+                console.log(this.value1)
+
+                this.select.startDate = dateFormat(this.value1[0]);
+                this.select.endDate = dateFormat(this.value1[1]);
+                console.log(this.select)
+                this.selectAll();
+
+            },
+            // 分页
+            handleSizeChange(val) {
+                //console.log(`每页 ${val} 条`);
+                // 重新设置每页显示的条数
+                this.pageSize = val;
+                this.selectAll();
+
+            },
+            handleCurrentChange(val) {
+                //console.log(`当前页: ${val}`);
+                // 重新设置当前页码
+                this.currentPage = val;
+                this.selectAll();
+            },
+            // 批量删除
+            deleteByIds() {
+                this.selectedIds = this.selectedIds.toString();
+                console.log(this.selectedIds)
+                // 弹出确认提示框
+
+                this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //用户点击确认按钮
+
+
+                    //2. 发送AJAX请求
+                    var _this = this;
+
+                    // 发送ajax请求，添加数据
+                    axios({
+                        method: "post",
+                        url: "/article?opr=delArticleByIds&selectedIds=" + this.selectedIds
+                    }).then(function (resp) {
+                        if (resp.data == "success") {
+                            //删除成功
+
+                            // 重新查询数据
+                            _this.selectAll();
+                            // 弹出消息提示
+                            _this.$message({
+                                message: '恭喜你，删除成功',
+                                type: 'success'
+                            });
+
+                        }
+                    })
+                }).catch(() => {
+                    //用户点击取消按钮
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+
+
+            },
+            // 更改状态
+            toggleState(index, row) {
+                console.log(index)
+                console.log(row)
+                axios({
+                    method: "post",
+                    url: "/article?opr=updateState&id=" + row.articleId + "&state=" + row.articleState
+                }).then(resp => {
+                    console.log(resp)
+                    if(resp.data.data==true){
+                        this.$message({
+                            message: '文章状态修改成功',
+                            type: 'success'
+                        });
+                        this.selectAll();
+                    }
+                })
+            },
+            // 编辑
+            handleEdit(index, row) {
+                console.log(index)
+                console.log(row.articleState)
+                // this.dialogTitle = '编辑';
+                // this.userInfo = row;
+                // this.iconFormVisible = true;
+                // this.rowIndex = index;
+            },
+
+
+        },
+        data() {
+            return {
+                // 是否启用
+                textState: "",
+                // 当前页码
+                currentPage: 1,
+                // 每页显示的条数
+                pageSize: 2,
+                // 总记录数
+                totalCount: 100,
+
+                // 添加数据对话框是否展示的标记
+                dialogVisible: false,
+                // 用户数据
+                select: {
+                    username: '',
+                    startDate: '1900-01-01 00:00:00.0',
+                    endDate: '2099-12-31 00:00:00.0'
+                },
+                // 被选中的id数组
+                selectedIds: [],
+                // 复选框选中数据集合
+                multipleSelection: [],
+                // 表格数据
+                tableData: [],
+                // 日期
+                pickerOptions: {
+                    shortcuts: [{
+                        text: '最近一周',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近一个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近三个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }]
+                },
+                value1: [],
+            }
+        }
+    })
+
+    /*用户-添加*/
+    function member_add(title, url, w, h) {
+        x_admin_show(title, url, w, h);
+    }
+
+    /*用户-查看*/
+    function member_show(title, url, id, w, h) {
+        x_admin_show(title, url, w, h);
+    }
+
+    /*用户-停用*/
+    function member_stop(obj, id) {
+        layer.confirm('确认要停用吗？', function (index) {
+            //发异步把用户状态进行更改
+            $(obj).parents("tr").find(".td-manage").prepend('<a style="text-decoration:none" onClick="member_start(this,id)" href="javascript:;" title="启用"><i class="layui-icon">&#xe62f;</i></a>');
+            $(obj).parents("tr").find(".td-status").html('<span class="layui-btn layui-btn-disabled layui-btn-mini">已停用</span>');
+            $(obj).remove();
+            layer.msg('已停用!', {icon: 5, time: 1000});
+        });
+    }
+
+
+    /*用户-启用*/
+    function member_start(obj, id) {
+        layer.confirm('确认要启用吗？', function (index) {
+            //发异步把用户状态进行更改
+            $(obj).parents("tr").find(".td-manage").prepend('<a style="text-decoration:none" onClick="member_stop(this,id)" href="javascript:;" title="停用"><i class="layui-icon">&#xe601;</i></a>');
+            $(obj).parents("tr").find(".td-status").html('<span class="layui-btn layui-btn-normal layui-btn-mini">已启用</span>');
+            $(obj).remove();
+            layer.msg('已启用!', {icon: 6, time: 1000});
+        });
+    }
+
+    // 用户-编辑
+    function member_edit(title, url, id, w, h) {
+        x_admin_show(title, url, w, h);
+    }
+
+    /*密码-修改*/
+    function member_password(title, url, id, w, h) {
+        x_admin_show(title, url, w, h);
+    }
+
+    /*用户-删除*/
+    function member_del(obj, id) {
+        layer.confirm('确认要删除吗？', {icon: 3, title: '提示信息'}, function (index) {
+            //发异步删除数据
+            $(obj).parents("tr").remove();
+            layer.msg('已删除!', {icon: 1, time: 1000});
+        });
+    }
+
+    Vue.filter('dataFormat', function (n) {
+        let date = new Date(n);
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+        let hour = date.getHours();
+        let minute = date.getMinutes() > 9 ? date.getMinutes() : ("0" + date.getMinutes());
+        let second = date.getSeconds() > 9 ? date.getSeconds() : ("0" + date.getSeconds());
+        return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+    })
+</script>
+</body>
+</html>

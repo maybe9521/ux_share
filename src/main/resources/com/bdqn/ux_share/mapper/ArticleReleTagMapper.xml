@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.ux_share.mapper.ArticleReleTagMapper">
+    <resultMap id="resultMap" type="articleReleTag">
+        <result property="articleId" column="article_id"></result>
+        <result property="tagId" column="tag_id"></result>
+    </resultMap>
+
+    <insert id="addArticleRelationTagIds">
+        INSERT INTO article_rele_tag VALUES
+        <foreach collection="list" item="obj" index="index" separator=",">
+            (
+            #{obj.articleId},#{obj.tagId}
+            )
+        </foreach>
+    </insert>
+    <delete id="delArticleRelationTagIds">
+        DELETE FROM article_rele_tag WHERE article_id=#{articleId}
+    </delete>
+    <select id="getAllByTagIdInt" resultType="java.lang.Integer">
+        select count(1)
+        from article_rele_tag where article_rele_tag.article_id=#{num}
+    </select>
+</mapper>

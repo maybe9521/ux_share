@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bdqn.ux_share.mapper.ArticleMapper">
+    <resultMap id="resultMap" type="articleDto">
+        <result property="articleId" column="article_id"></result>
+        <result property="userId" column="user_id"></result>
+        <result property="articleTitle" column="article_title"></result>
+        <result property="classId" column="class_id"></result>
+        <result property="articleContent" column="article_content"></result>
+        <result property="articleSummary" column="article_summary"></result>
+        <result property="articleCover" column="article_cover"></result>
+        <result property="dataLike" column="data_like"></result>
+        <result property="dataPv" column="data_pv"></result>
+        <result property="articleState" column="article_state"></result>
+        <result property="createDate" column="article_date"></result>
+        <result property="userName" column="user_uname"></result>
+    </resultMap>
+    <insert id="addArticle">
+        INSERT INTO article (`article_id`, `user_id`, `article_title`, `class_id`, `article_content`,
+                                `article_summary`, `article_cover`, `data_like`, `data_pv`, `article_state`,
+                                `article_date`)
+        VALUES (NULL, #{userId}, #{articleTitle}, #{classId},#{articleContent} , #{articleSummary},#{articleCover}, 0, 0, 1, now())
+    </insert>
+    <delete id="delArticle">
+        DELETE FROM article WHERE article_id=#{articleId}
+    </delete>
+
+
+    <select id="getAll" resultType="com.bdqn.ux_share.pojo.Article"></select>
+    <select id="getArticleDtoAll" resultMap="resultMap">
+        SELECT a.article_id,
+               a.user_id,
+               a.article_title,
+               a.class_id,
+               a.article_content,
+               a.article_summary,
+               a.article_cover,
+               a.data_like,
+               a.data_pv,
+               a.article_state,
+               a.article_date,
+               u.user_uname
+        FROM article AS a,
+             user_msg AS u
+        where a.user_id = u.user_id
+          and u.user_uname LIKE #{username}
+          and a.article_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="selectByPageBean" resultMap="resultMap">
+        SELECT a.article_id,
+        a.user_id,
+        a.article_title,
+        a.class_id,
+        a.article_content,
+        a.article_summary,
+        a.article_cover,
+        a.data_like,
+        a.data_pv,
+        a.article_state,
+        a.article_date,
+        u.user_uname
+        FROM article AS a,
+        user_msg AS u
+        where a.user_id = u.user_id
+        <if test="username !=null and username !='' ">
+            and u.user_uname LIKE #{username}
+        </if>
+        <if test="startDate !=null and startDate !='' ">
+            and a.article_date > #{startDate}
+        </if>
+        <if test="endDate !=null and endDate !='' ">
+            and a.article_date &lt; #{endDate}
+        </if>
+        order by a.article_id
+        limit #{page},#{size}
+    </select>
+    <select id="getArticleDtoCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM article AS a,
+             user_msg AS u
+        where a.user_id = u.user_id
+    </select>
+    <select id="getArticleAll" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM article AS a,
+             user_msg AS u
+        where a.user_id = u.user_id
+    </select>
+    <select id="selectByPageBeanAll" resultMap="resultMap">
+        SELECT a.article_id,
+               a.user_id,
+               a.article_title,
+               a.class_id,
+               a.article_content,
+               a.article_summary,
+               a.article_cover,
+               a.data_like,
+               a.data_pv,
+               a.article_state,
+               a.article_date,
+               u.user_uname
+        FROM article AS a,
+             user_msg AS u
+        where a.user_id = u.user_id
+        order by a.article_id
+        limit #{page},#{size}
+    </select>
+    <select id="selectByPageBeans" resultMap="resultMap">
+        SELECT a.article_id,
+        a.user_id,
+        a.article_title,
+        a.class_id,
+        a.article_content,
+        a.article_summary,
+        a.article_cover,
+        a.data_like,
+        a.data_pv,
+        a.article_state,
+        a.article_date,
+        u.user_uname
+        FROM article AS a,
+        user_msg AS u
+        where a.user_id = u.user_id
+        <if test="username !=null and username !='' ">
+            and u.user_uname LIKE #{username}
+        </if>
+        <if test="startDate !=null">
+            and a.article_date > #{startDate}
+        </if>
+        <if test="endDate !=null">
+            and a.article_date &lt; #{endDate}
+        </if>
+        order by a.article_id
+        limit #{page},#{size}
+    </select>
+    <select id="getArticleDtoCounts" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM article AS a,
+        user_msg AS u
+        where a.user_id = u.user_id
+        <if test="username !=null and username !='' ">
+            and u.user_uname LIKE #{username}
+        </if>
+        <if test="startDate !=null">
+            and a.article_date > #{startDate}
+        </if>
+        <if test="endDate !=null">
+            and a.article_date &lt; #{endDate}
+        </if>
+    </select>
+
+    <select id="selectCommentLengthInt" resultType="java.lang.Integer">
+        SELECT count(1) as count
+        FROM comment_view
+        WHERE comment_view.article_id = #{num}
+    </select>
+</mapper>
