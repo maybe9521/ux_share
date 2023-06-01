@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>
+            文章类型添加
+        </title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="format-detection" content="telephone=no">
+
+        <link rel="stylesheet" href="./css/x-admin.css" media="all">
+    </head>
+    <body>
+        <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>文章标签类型</cite></a>
+
+              <a><cite>添加文章类型</cite></a>
+
+            </span>
+            <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+        </div>
+        <div id="testApp" class="x-body">
+            <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+
+              <div class="layui-tab-content" >
+                <div class="layui-tab-item layui-show">
+                    <form class="layui-form layui-form-pane" action="">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                <span class='x-red'>*</span>新的文章标签
+                            </label>
+                            <div class="layui-input-block">
+                                <input type="text" ref="getValue" name="name" autocomplete="off" placeholder="5个左右,8汉字以内,用英文,隔开"
+                                class="layui-input" lay-verify="required">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">
+                                <span class='x-red'>*</span>描述
+                            </label>
+                            <div class="layui-input-block">
+                                <textarea placeholder="请输入内容" class="layui-textarea" name="info"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <button v-on:click="addArticle" class="layui-btn" lay-submit="" lay-filter="*">
+                                保存
+                            </button>
+                        </div>
+                    </form>
+                    <div style="height:100px;"></div>
+                </div>
+
+              </div>
+            </div> 
+        </div>
+        <script src="./lib/layui/layui.js" charset="utf-8"></script>
+        <script src="./js/x-layui.js" charset="utf-8"></script>
+        <script src="js/vue.js"></script>
+        <script src="js/jquery-3.6.min.js"></script>
+        <script src="js/axios-0.18.0.js"></script>
+        <script>
+            new Vue({
+                el:"#testApp",
+                mounted(){
+                },
+                methods:{
+                    addArticle(){
+                        if(this.$refs.getValue.value == ""){
+                        }else {
+                            console.log("fewafew");
+                            axios({
+                                method:"post",
+                                url:"/articleClass?opr=addArticleClass&tname="+this.$refs.getValue.value
+                            }).then(resp => {
+                                alert("添加成功！"+this.$refs.getValue.value)
+                                console.log("添加成功！");
+                                console.log(resp)
+                                this.trueOfFalse = resp.data.data;
+                                console.log(this.$refs.getValue.value);
+                                console.log("添加成功！");
+                            })
+                            x_admin_close()
+                        }
+                    }
+                },
+                data(){
+                    return{
+                        trueOfFalse:[]
+                    }
+                }
+            })
+
+
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+              lement = layui.element();//面包导航
+              layer = layui.layer;//弹出层
+              form = layui.form()
+                okLoading.close($);
+
+              
+             //监听提交
+              form.on('submit(*)', function(data){
+                var name = $("input[name=name]").val();
+                if(name ==""){
+                    layer.msg("文章分类名称不能为空！",{icon:5,time:2000});return false;
+                }
+                var data = data.field;
+                $.ajax({
+                    type:"post",
+                    url:"",
+                    data:data,
+                    dataType:"json",
+                    success:function (data) {
+                        if(data.status==1){
+                            layer.msg(data.info,{icon:1,time:1000});
+                            setTimeout(function(){
+                                window.parent.location.reload();
+                                var index = parent.layer.getFrameIndex(window.name);
+                                parent.layer.close(index);
+                            },1000);
+                            return false;
+                        }else{
+                            layer.msg(data.info,{icon:5,time:2000});return false;
+                        }
+                    }
+                });
+                return false;
+              });
+
+              })
+            </script>
+            
+    </body>
+</html>

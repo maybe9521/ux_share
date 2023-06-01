@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>
+            文章类型添加
+        </title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="format-detection" content="telephone=no">
+
+        <link rel="stylesheet" href="./css/x-admin.css" media="all">
+    </head>
+    <body>
+        <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>文章标签类型</cite></a>
+
+              <a><cite>修改文章标签</cite></a>
+
+            </span>
+            <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+        </div>
+        <div id="adds" class="x-body">
+            <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+
+              <div class="layui-tab-content" >
+                <div class="layui-tab-item layui-show">
+                    <form class="layui-form layui-form-pane" action="">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                <span class='x-red'>*</span>原标签名
+                            </label>
+                            <div class="layui-input-block">
+                                <input type="text" name="source" autocomplete="off" placeholder="空制在80个汉字，160个字符以内"
+                                      readonly="readonly" class="layui-input" :value="unameAA">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">
+                                <span class='x-red'>*</span>新标签名
+                            </label>
+                            <div class="layui-input-block">
+                                <input id="outIn" ref="getValue" type="text" name="sort" autocomplete="off"  placeholder="请输入新的标签名"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">
+                                <span class='x-red'>*</span>描述
+                            </label>
+                            <div class="layui-input-block">
+                                <textarea placeholder="请输入内容" class="layui-textarea" name="info"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <button v-on:click="delArticle" class="layui-btn" lay-submit="" lay-filter="*">
+                                保存
+                            </button>
+                        </div>
+                    </form>
+                    <div style="height:100px;"></div>
+                </div>
+
+              </div>
+            </div> 
+        </div>
+        <script src="./lib/layui/layui.js" charset="utf-8"></script>
+        <script src="./js/x-layui.js" charset="utf-8"></script>
+        <script type="text/javascript">
+            //实例化编辑器
+            //建议使用工厂方法getEditor创建和引用编辑器实例，如果在某个闭包下引用该编辑器，直接调用UE.getEditor('editor')就能拿到相关的实例
+            UE.getEditor('content',{initialFrameWidth:600,initialFrameHeight:400,});
+        </script>
+        <script src="js/vue.js"></script>
+        <script src="js/jquery-3.6.min.js"></script>
+        <script src="js/axios-0.18.0.js"></script>
+        <script>
+            var test = decodeURIComponent(location.href);
+            var tid = test.split('=')[1];
+            var tidA = tid.split('&')[0];
+            var test = test.split('=')[2];
+            new Vue({
+                el:"#adds",
+                mounted(){
+                },
+                methods:{
+                    delArticle(){
+                        if(this.$refs.getValue.value == ""){
+                            alert("请输入要修改的参数！");
+                        }else if(this.$refs.getValue.value == test){
+                            alert("修改的参数不能和原参数一样！");
+                        }else {
+                            alert("进入方法");
+                            axios({
+                                method:"post",
+                                url:"/articleClass?opr=updateArticleClass&tid="+tidA+"&tname="+this.$refs.getValue.value
+                            }).then(resp => {
+                                alert("调用了");
+                                x_admin_close();
+                                console.log(this.$refs.getValue.value);
+                                this.trueOfFalse = resp.data.data;
+                                alert(test);
+                            })
+                        }
+                    }
+                },
+                data(){
+                    return{
+                        uid:tidA,
+                        unameAA:test
+                    }
+                }
+            })
+            </script>
+            
+    </body>
+</html>

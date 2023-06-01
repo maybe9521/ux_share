@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <meta content="webkit" name="renderer">
+    <meta content="no-cache" http-equiv="pragma">
+    <meta content="no-cache" http-equiv="cache-control">
+    <meta content="0" http-equiv="expires">
+    <title></title>
+    <link href="files/add/admin.css" rel="stylesheet">
+    <link href="files/add/pintuer.css" rel="stylesheet">
+    <script src="../js/jquery.js"></script>
+    <script src="../js/jquery-3.6.min.js"></script>
+    <script src="../js/pintuer.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <script src="../js/ckeditor/ckeditor.js"></script>
+    <script src="../element-ui/lib/index.js"></script>
+    <script src="../element-ui/lib/theme-chalk/index.css"></script>
+    <style>
+        .tagClass {
+            width: 400px;
+            height: 100%;
+            margin-left: 15%;
+        }
+
+        .tagClass .tagField {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+
+    <div class="panel admin-panel">
+        <div class="panel-head" id="add"><strong><span class="icon-pencil-square-o"></span>增加内容</strong></div>
+        <div class="body-content">
+
+
+            <form @submit.prevent="onSubmit" action="" class="form-x" enctype="multipart/form-data" id="newsForm"
+                  method="post">
+                <div class="form-group">
+                    <input name="userId" type="hidden" v-bind:value="this.article.userId"></input>
+                    <div class="label">
+                        <label>作者：</label>
+                    </div>
+                    <div class="field">
+                        <input class="input w50" name="name" type="text" v-bind:value=" userMsg.userNickname"/>
+                        <div class="tips"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="label">
+                        <label>标题：</label>
+                    </div>
+                    <div class="field">
+                        <input class="input w50" data-validate="required:请输入标题" name="articleTitle" type="text"
+                               v-model="article.articleTitle"
+                               value=""/>
+                        <div class="tips">
+                            {{article.articleTitle}}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="label">
+                        <label>图片：</label>
+                    </div>
+                    <div class="field">
+                        <label> 上传图片 </label>
+                        <input @change="tirggerFile($event)" class="opt_input" id="file" name="articleCover"
+                               type="file"/>
+                        <div id="result"></div>
+                        <!--                        <input class="input tips" data-image="" data-place="right" data-toggle="hover" id="url1"-->
+                        <!--                               name="img"-->
+                        <!--                               style="width:25%; float:left;" type="text" value=""/>-->
+                        <!--                        <input class="button bg-blue margin-left" id="image1" style="float:left;" type="button"-->
+                        <!--                               value="+ 浏览上传">-->
+                        <!--                        <div class="tipss">图片尺寸：500*500</div>-->
+                    </div>
+                    {{this.article.articleCover}}
+                </div>
+
+                <if condition="$iscid eq 1">
+                    <div class="form-group">
+                        <div class="label">
+                            <label>分类标题：</label>
+                        </div>
+                        <div class="field">
+                            <select class="input w50" name="classId" v-model="article.classId">
+                                <option value="">请选择分类</option>
+                                <option v-bind:value="item.classId" v-for="item in articleClass"/>
+                                {{item.className}}</option>
+                                >
+                            </select>
+                            <div class="tips"></div>
+                        </div>
+                        {{article.classId}}
+                    </div>
+                    <div class="form-group">
+                        <div class="label">
+                            <label>标签属性：</label>
+                        </div>
+                        <div class="tagClass">
+                            <div class="field" style="padding-top:8px;width: 100px;" v-for="item in articleTag">
+                                {{item.tagName}}<input id="item.tagId" type="checkbox"
+                                                       v-bind:name="item.tagId" v-bind:value="item.tagId"
+                                                       v-model="article.tagIds"></input>
+                            </div>
+                            {{this.article.tagIds}}
+                        </div>
+                    </div>
+                </if>
+                <div class="form-group">
+                    <div class="label">
+                        <label>描述：</label>
+                    </div>
+                    <div class="field">
+                        <textarea class="input" name="articleSummary" style=" height:90px;white-space: pre-line"
+                                  v-model="article.articleSummary"></textarea>
+                        {{this.article.articleSummary}}
+                        <div class="tips"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="label">
+                        <label>内容：</label>
+                    </div>
+                    <div class="field">
+                        <textarea class="input" class="ckeditor" name="articleContent"
+                                  style="height:450px; border:1px solid #ddd;white-space: pre-line"
+                                  v-model="article.articleContent"></textarea>
+                        {{article.articleContent}}
+                        <div class="tips"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+
+                </div>
+
+                <!--                <div class="form-group">-->
+                <!--                    <div class="field">-->
+                <!--                        <input class="input w50" data-validate="member:只能为数字" name="views" type="text" value=""/>-->
+                <!--                        <div class="tips"></div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <div class="form-group">
+                    <div class="label">
+                        <label></label>
+                    </div>
+                    <div class="field">
+                        <button @click="addArticle()" class="button bg-main icon-check-square-o" type="submit"> 提交
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    function jump() {
+        window.location.href = "/front/index.html";
+    }
+
+
+    //显示框信息
+
+    function showMsg(val, time) {
+
+        if (!document.getElementById('parent_pop_up')) {
+
+            var parent_pop_up = document.createElement('div');
+
+            parent_pop_up.id = "parent_pop_up";
+
+            parent_pop_up.style.cssText = "position: fixed; z-index: 9999; bottom: 5rem; width: 100%;";
+
+            var poo_up = document.createElement('div');
+
+            poo_up.id = 'poo_up';
+
+            poo_up.style.cssText = 'height: 1rem; margin:0 auto; text-align: center;';
+
+            var span = document.createElement('span');
+
+            span.style.cssText = 'background-color: rgba(0,0,0,0.6); padding: 0.2rem 0.35rem; letter-spacing: 1px; border-radius: 5px; color: #FFFFFF; font-size: 0.34rem; text-align: center;' +
+                'top: 70px;left: 30%;display: inline-block;height: 25px;position: fixed;width: 300px;';
+
+            span.innerHTML = val;
+
+            poo_up.appendChild(span);
+
+            parent_pop_up.appendChild(poo_up);
+
+            document.body.appendChild(parent_pop_up);
+
+            if (time == null || time == '') {
+
+                time = 2000;
+
+            }
+
+            setTimeout(function () {
+                hideMsg();
+            }, time);
+
+        }
+
+    }
+
+    //隐藏显示框
+
+    function hideMsg() {
+
+        var pop = document.getElementById('parent_pop_up');
+
+        pop.style.display = 'none';
+
+        document.body.removeChild(pop);
+
+    }
+
+    new Vue({
+        el: '#app',
+        // mounted() 自动加载事件
+        mounted() {
+            this.loadUser();
+            this.loadArticleClass();
+            this.loadArticleTag();
+        },
+        methods: {
+            // 加载文章分类列表
+            loadArticleClass()
+            {
+                axios({
+                    method: "post",
+                    url: "/articleClass?opr=getAllAdd"
+                }).then(resp => {
+                    console.log(resp)
+                    this.articleClass = resp.data.data;
+                    console.log(this.articleClass);
+                })
+            },
+            // 上传文章
+            // addArticle(){
+            //     console.log(this.article);
+            //     $("input[name='"+this.userMsg.userId+"']").removeAttr("disabled");
+            //     axios({
+            //         method: "post",
+            //         url: "/usermsg?opr=addArticle",
+            //         data:this.article,
+            //         withCredentials: true // cros with cookie
+            //     }).then(resp => {
+            //         console.log(resp)
+            //         this.articleClass = resp.data.data;
+            //         console.log(this.article);
+            //     })
+            // },
+            addArticle() {
+                //$("#ncontent").val(CKEDITOR.instances.ncontent.getData());
+                // $("#ncontent").val(CKEDITOR.instances.ncontent.getData());
+                //  console.log( $("#newsForm").serializeArray());
+                //var formData = new FormData($("#newsForm")[0]);// 包含普通和文件数据
+
+                //this.article.tagIds=this.article.tagIds.toString();
+                // article:{
+                //     userId:"",// 用户id,
+                //         articleTitle:"",// 文章标题
+                //         classId:"0",// 分类编号
+                //         articleCover:"",// 文章封面图片
+                //         tagIds:[],// 文章标签属性数组
+                //         articleSummary:"随便玩玩",// 文章概要
+                //         articleContent:"随便写点什么",// 文章内容
+                // },
+                var formData = new FormData($("#newsForm")[0]);// 包含普通和文件数据
+                //var formData = new FormData();
+                // console.log(formData)
+                // formData.append("userId",this.article.userId);
+                // formData.append("articleTitle",this.article.articleTitle);
+                // formData.append("classId",this.article.classId);
+                // formData.append("articleCover",this.article.articleCover);
+                formData.append("tagIds", this.article.tagIds);
+                formData.set("tagIds", formData.get("tagIds").toString());
+                console.log(formData.get("tagIds"))
+                // formData.append("articleSummary",this.article.articleSummary);
+                // formData.append("articleContent",this.article.articleContent);
+                console.log(formData)
+                axios({
+                    method: "post",
+                    url: "/usermsg?opr=addArticle",
+                    data: formData,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    withCredentials: true // cros with cookie
+                }).then(resp => {
+                    console.log(resp)
+                    this.articleClass = resp.data.data;
+                    console.log(this.article);
+                    window.location.href="usercentre.html";
+                })
+            },
+
+            // 将上传的图片显示
+            tirggerFile: function (event) {
+                var files = $("#file")[0].files;//文件上传input的id
+                var file = files[0];
+                //alert(file.size+","+file.type+","+file.name);
+                //把上传的图片显示出来
+                var reader = new FileReader();
+                // 将文件以Data URL形式进行读入页面
+                reader.readAsBinaryString(file);
+                reader.onload = function (f) {
+                    var result = document.getElementById("result");//显示的区域
+                    var src = "data:" + file.type + ";base64," + window.btoa(this.result);
+                    result.innerHTML = '<img width="100" height="100" src ="' + src + '"/>';
+                }
+                var file = event.target.files; // (利用console.log输出看结构就知道如何处理档案资料)
+                // do something...
+                console.log(file)
+                this.article.articleCover = file;
+            }
+            ,
+            // 阻止表单提交
+            onSubmit: function () {
+                return false;
+            },
+            // // 提交表单信息
+            // add(){
+            //     console.log(2)
+            //     //console.log( $("#newsForm").serializeArray());
+            //     alert($("#newsForm").serializeArray())
+            //     var formData = new FormData($("#newsForm")[0]);// 包含普通和文件数据
+            //     alert(formData)
+            // },
+
+            // 加载登录用户信息
+            loadUser() {
+                axios({
+                    method: "post",
+                    url: "/usermsg?opr=loadUserName"
+                }).then(resp => {
+                    console.log(resp.data)
+                    if (resp.data.code != 500) {
+                        this.userMsg = resp.data;
+                        console.log(this.userMsg)
+                        $("input[name='name']").val(this.userMsg.userNickname)
+                        $("input[name='name']").attr("name", this.userMsg.userId);
+                        $("input[name='" + this.userMsg.userId + "']").attr("disabled", true);
+                        this.article.userId = ($("input[name='" + this.userMsg.userId + "']").attr("name"));
+                    } else {
+                        console.log(resp.data.message)
+                        this.openVn(resp.data.message);
+                        setTimeout(jump, 1000);
+                    }
+                })
+            },
+            openVn(info) {
+                showMsg(info, 2000)
+            }
+            ,
+            // 加载文件标签列表
+            loadArticleTag() {
+                axios({
+                    method: "post",
+                    url: "/articleTag?opr=getAllAdd"
+                }).then(resp => {
+                    console.log(resp)
+                    this.articleTag = resp.data.data;
+                    console.log(this.articleTag);
+                })
+            }
+
+        },
+        data() {
+            return {
+                article: {
+                    userId: "",// 用户id,
+                    articleTitle: "",// 文章标题
+                    classId: "0",// 分类编号
+                    articleCover: "",// 文章封面图片
+                    tagIds: [],// 文章标签属性数组
+                    articleSummary: "随便玩玩",// 文章概要
+                    articleContent: "随便写点什么",// 文章内容
+                },
+                userMsg: {
+                    userId: "",// 用户ID
+                    userNickname: '',// 用户昵称
+                },
+                articleClass: [],// 文章分类数组
+                articleTag: []// 文章标签数组
+            }
+        }
+    })
+    ;
+</script>
+
+</body>
+</html>
